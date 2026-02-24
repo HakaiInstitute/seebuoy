@@ -92,7 +92,7 @@ def _build_txt_url(name, suffix):
 def parse_avail_historical(txt, dataset):
     dataset_code = DATASETS[dataset]
 
-    df_raw = pd.read_html(txt)[0]
+    df_raw = pd.read_html(StringIO(txt))[0]
 
     df = df_raw.dropna(subset=["Last modified"])
     col_rename = {
@@ -124,7 +124,7 @@ def base_parser(txt):
     df = pd.read_csv(
         StringIO(txt),
         header=0,
-        delim_whitespace=True,
+        sep=r"\s+",
         dtype=str,
         na_values=["99", "99.0", "99.00", "999.0"],
     )
@@ -225,7 +225,7 @@ def parse_tide(txt):
     df = pd.read_csv(
         StringIO(txt),
         header=0,
-        delim_whitespace=True,
+        sep=r"\s+",
         na_values=[99, 999, 9999, 99.0, 99.00, 999.0, 9999.0, "99", "99.0", "99.00"],
     )
 

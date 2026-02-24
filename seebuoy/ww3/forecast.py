@@ -127,7 +127,7 @@ class WW3:
         """
 
         today = datetime.today().strftime("%Y-%m-%d")
-        dti = pd.date_range(today, periods=60, freq="3H")
+        dti = pd.date_range(today, periods=60, freq="3h")
 
         lat_idx, lon_idx = self.get_closest_lat_lon(lat, lon)
 

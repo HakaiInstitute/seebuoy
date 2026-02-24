@@ -99,7 +99,7 @@ def extract_station(station_id, dataset):
 # TRANSFORM
 def parse_avail_real_time(txt):
 
-    df = pd.read_html(txt)[0]
+    df = pd.read_html(StringIO(txt))[0]
     df = df.dropna(subset=["Last modified"])
 
     col_rename = {
@@ -132,18 +132,20 @@ def parse_standard(txt, rename_cols=True):
 
     df = pd.read_csv(
         StringIO(txt),
-        delim_whitespace=True,
+        sep=r"\s+",
         na_values="MM",
-        parse_dates=[[0, 1, 2, 3, 4]],
-        index_col=0,
     )
 
     # first column is units, so drop it
     df.drop(df.index[0], inplace=True)
 
     # convert the dates to datetimes
-    df.index = pd.to_datetime(df.index, format="%Y %m %d %H %M")
+    df.index = pd.to_datetime(
+        df.iloc[:, :5].astype(str).agg(" ".join, axis=1),
+        format="%Y %m %d %H %M",
+    )
     df.index.name = "date"
+    df = df.iloc[:, 5:]
 
     for c in df.columns:
         df[c] = pd.to_numeric(df[c])
@@ -158,18 +160,20 @@ def parse_oceanographic(txt, rename_cols=True):
 
     df = pd.read_csv(
         StringIO(txt),
-        delim_whitespace=True,
+        sep=r"\s+",
         na_values="MM",
-        parse_dates=[[0, 1, 2, 3, 4]],
-        index_col=0,
     )
 
     # units are in the second row drop them
     df.drop(df.index[0], inplace=True)
 
     # convert the dates to datetimes
-    df.index = pd.to_datetime(df.index, format="%Y %m %d %H %M")
+    df.index = pd.to_datetime(
+        df.iloc[:, :5].astype(str).agg(" ".join, axis=1),
+        format="%Y %m %d %H %M",
+    )
     df.index.name = "date"
+    df = df.iloc[:, 5:]
 
     # convert to floats
     cols = ["DEPTH", "OTMP", "COND", "SAL"]
@@ -187,17 +191,19 @@ def parse_supplemental(txt):
 
     df = pd.read_csv(
         StringIO(txt),
-        delim_whitespace=True,
+        sep=r"\s+",
         na_values="MM",
-        parse_dates=[[0, 1, 2, 3, 4]],
-        index_col=0,
     )
 
     # units are in the second row drop them
     df.drop(df.index[0], inplace=True)
 
     # convert the dates to datetimes
-    df.index = pd.to_datetime(df.index, format="%Y %m %d %H %M")
+    df.index = pd.to_datetime(
+        df.iloc[:, :5].astype(str).agg(" ".join, axis=1),
+        format="%Y %m %d %H %M",
+    )
+    df = df.iloc[:, 5:]
 
     # convert to floats
     cols = ["PRES", "PTIME", "WSPD", "WDIR", "WTIME"]
@@ -212,16 +218,18 @@ def parse_raw_spectral(txt):
 
     df = pd.read_csv(
         StringIO(txt),
-        delim_whitespace=True,
+        sep=r"\s+",
         skiprows=1,
         header=None,
-        parse_dates=[[0, 1, 2, 3, 4]],
-        index_col=0,
     )
 
     # convert the dates to datetimes
-    df.index = pd.to_datetime(df.index, format="%Y %m %d %H %M")
+    df.index = pd.to_datetime(
+        df.iloc[:, :5].astype(str).agg(" ".join, axis=1),
+        format="%Y %m %d %H %M",
+    )
     df.index.name = "date"
+    df = df.iloc[:, 5:]
 
     specs = df.iloc[:, 1::2]
     freqs = df.iloc[0, 2::2]
@@ -239,10 +247,8 @@ def parse_spectral_summary(txt):
 
     df = pd.read_csv(
         StringIO(txt),
-        delim_whitespace=True,
+        sep=r"\s+",
         na_values="MM",
-        parse_dates=[[0, 1, 2, 3, 4]],
-        index_col=0,
     )
 
     try:
@@ -251,7 +257,11 @@ def parse_spectral_summary(txt):
         df.drop(df.index[0], inplace=True)
 
         # convert the dates to datetimes
-        df.index = pd.to_datetime(df.index, format="%Y %m %d %H %M")
+        df.index = pd.to_datetime(
+            df.iloc[:, :5].astype(str).agg(" ".join, axis=1),
+            format="%Y %m %d %H %M",
+        )
+        df = df.iloc[:, 5:]
 
         # convert to floats
         cols = ["WVHT", "SwH", "SwP", "WWH", "WWP", "APD", "MWD"]
@@ -259,7 +269,11 @@ def parse_spectral_summary(txt):
     except IndexError:
 
         # convert the dates to datetimes
-        df.index = pd.to_datetime(df.index, format="%Y %m %d %H %M")
+        df.index = pd.to_datetime(
+            df.iloc[:, :5].astype(str).agg(" ".join, axis=1),
+            format="%Y %m %d %H %M",
+        )
+        df = df.iloc[:, 5:]
 
         # convert to floats
         cols = ["H0", "SwH", "SwP", "WWH", "WWP", "AVP", "MWD"]
@@ -272,17 +286,19 @@ def parse_spectral_alpha1(txt):
     """Parse the dataset that ends in swdir."""
     df = pd.read_csv(
         StringIO(txt),
-        delim_whitespace=True,
+        sep=r"\s+",
         skiprows=1,
         na_values=999,
         header=None,
-        parse_dates=[[0, 1, 2, 3, 4]],
-        index_col=0,
     )
 
     # convert the dates to datetimes
-    df.index = pd.to_datetime(df.index, format="%Y %m %d %H %M")
+    df.index = pd.to_datetime(
+        df.iloc[:, :5].astype(str).agg(" ".join, axis=1),
+        format="%Y %m %d %H %M",
+    )
     df.index.name = "date"
+    df = df.iloc[:, 5:]
 
     specs = df.iloc[:, 0::2]
     freqs = df.iloc[0, 1::2]
@@ -300,16 +316,18 @@ def parse_spectral_alpha2(txt):
 
     df = pd.read_csv(
         StringIO(txt),
-        delim_whitespace=True,
+        sep=r"\s+",
         skiprows=1,
         header=None,
-        parse_dates=[[0, 1, 2, 3, 4]],
-        index_col=0,
     )
 
     # convert the dates to datetimes
-    df.index = pd.to_datetime(df.index, format="%Y %m %d %H %M")
+    df.index = pd.to_datetime(
+        df.iloc[:, :5].astype(str).agg(" ".join, axis=1),
+        format="%Y %m %d %H %M",
+    )
     df.index.name = "date"
+    df = df.iloc[:, 5:]
 
     specs = df.iloc[:, 0::2]
     freqs = df.iloc[0, 1::2]
@@ -327,17 +345,19 @@ def parse_spectral_r1(txt):
 
     df = pd.read_csv(
         StringIO(txt),
-        delim_whitespace=True,
+        sep=r"\s+",
         skiprows=1,
         header=None,
-        parse_dates=[[0, 1, 2, 3, 4]],
-        index_col=0,
         na_values=999,
     )
 
     # convert the dates to datetimes
-    df.index = pd.to_datetime(df.index, format="%Y %m %d %H %M")
+    df.index = pd.to_datetime(
+        df.iloc[:, :5].astype(str).agg(" ".join, axis=1),
+        format="%Y %m %d %H %M",
+    )
     df.index.name = "date"
+    df = df.iloc[:, 5:]
 
     specs = df.iloc[:, 0::2]
     freqs = df.iloc[0, 1::2]
@@ -355,17 +375,20 @@ def parse_spectral_r2(txt):
 
     df = pd.read_csv(
         StringIO(txt),
-        delim_whitespace=True,
+        sep=r"\s+",
         skiprows=1,
         header=None,
-        parse_dates=[[0, 1, 2, 3, 4]],
-        index_col=0,
         na_values=999,
     )
 
     # convert the dates to datetimes
-    df.index = pd.to_datetime(df.index, format="%Y %m %d %H %M")
+    df.index = pd.to_datetime(
+        df.iloc[:, :5].astype(str).agg(" ".join, axis=1),
+        format="%Y %m %d %H %M",
+    )
     df.index.name = "date"
+    df = df.iloc[:, 5:]
+
     specs = df.iloc[:, 0::2]
     freqs = df.iloc[0, 1::2]
 

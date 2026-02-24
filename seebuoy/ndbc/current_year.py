@@ -1,4 +1,5 @@
 from datetime import datetime
+from io import StringIO
 import pandas as pd
 from . import historical
 from . import utils
@@ -72,14 +73,14 @@ def parse_avail_current_year_month(txt, dataset, month):
 
     dataset_code = DATASETS[dataset]
 
-    df = pd.read_html(txt)[0]
+    df = pd.read_html(StringIO(txt))[0]
     col_rename = {
         "Name": "file_name",
         "Last modified": "last_modified",
         "Size": "size",
         "Description": "description",
     }
-    df = pd.read_html(txt)[0]
+    df = pd.read_html(StringIO(txt))[0]
     df = df.dropna(subset="Last modified")
     df = df[list(col_rename)].rename(columns=col_rename)
 
